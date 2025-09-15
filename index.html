@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Train Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        input { padding: 5px; width: 150px; margin:5px; }
+        button { padding: 5px 10px; margin:5px; }
+        table { margin: 20px auto; width: 70%; border-collapse: collapse; }
+        th, td { padding: 10px; border:1px solid #000; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Login Page -->
+    <div id="login-page">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username"><br>
+        <input type="password" id="password" placeholder="Password"><br>
+        <button onclick="login()">Login</button>
+        <p id="error" style="color:red;"></p>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboard" class="hidden">
+        <h2 id="welcome"></h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Train Name</th>
+                    <th>Train Number</th>
+                    <th>Timing</th>
+                    <th>Track</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody id="train-table"></tbody>
+        </table>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+<script>
+    // Users
+    const users = {
+        "1234": {role: "user"},
+        "root": {role: "admin"}
+    };
+
+    // Sample train data
+    const trains = [
+        {name: "Express 101", number: "101", timing: "10:00 AM", track: "1"},
+        {name: "Express 102", number: "102", timing: "12:00 PM", track: "2"}
+    ];
+
+    let currentRole = '';
+
+    // Login logic
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorEl = document.getElementById('error');
+
+        if ((username === '1234' && password === '1234') || (username === 'root' && password === 'root')) {
+            currentRole = username === 'root' ? 'admin' : 'user';
+            showDashboard(currentRole);
+        } else {
+            errorEl.innerText = 'Invalid Credentials!';
+        }
+    }
+
+    // Show dashboard
+    function showDashboard(role) {
+        currentRole = role;
+        document.getElementById('login-page').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        document.getElementById('welcome').innerText = role === 'admin' ? 'Welcome Root (Admin)' : 'Welcome User';
+
+        const tbody = document.getElementById('train-table');
+        tbody.innerHTML = '';
+
+        trains.forEach((train, index) => {
+            const tr = document.createElement('tr');
+
+            // If normal user clicks edit, redirect to login
+            const editCell = role === 'admin'
+                ? `<button onclick="editTrain(${index})">Edit</button>`
+                : `<button onclick="redirectToLogin()">Edit</button>`;
+
+            tr.innerHTML = `
+                <td>${train.name}</td>
+                <td>${train.number}</td>
+                <td>${train.timing}</td>
+                <td>${train.track}</td>
+                <td>${editCell}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function editTrain(index) {
+        const newName = prompt("Enter new train name:", trains[index].name);
+        const newTiming = prompt("Enter new timing:", trains[index].timing);
+        const newTrack = prompt("Enter new track:", trains[index].track);
+
+        if (newName && newTiming && newTrack) {
+            trains[index].name = newName;
+            trains[index].timing = newTiming;
+            trains[index].track = newTrack;
+            showDashboard('admin'); // Refresh table
+        }
+    }
+
+    // Redirect normal user to login if tries to edit
+    function redirectToLogin() {
+        alert("You need root access to edit. Redirecting to login.");
+        logout();
+    }
+
+    function logout() {
+        currentRole = '';
+        document.getElementById('dashboard').classList.add('hidden');
+        document.getElementById('login-page').classList.remove('hidden');
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('error').innerText = '';
+    }
+</script>
+
+</body>
+</html>
